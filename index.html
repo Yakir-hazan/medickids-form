@@ -409,6 +409,17 @@
       setTimeout(() => t.classList.remove('show'), 3500);
     }
 
+    function getDeviceInfo() {
+      const ua = navigator.userAgent || '';
+      let device = 'לא זוהה';
+      if (/iPhone/.test(ua)) device = 'iPhone';
+      else if (/iPad/.test(ua)) device = 'iPad';
+      else if (/Android/.test(ua)) device = 'Android';
+      else if (/Windows/.test(ua)) device = 'מחשב (Windows)';
+      else if (/Macintosh/.test(ua)) device = 'מחשב (Mac)';
+      return device;
+    }
+
     function setErr(errId, inputId, show) {
       document.getElementById(errId).classList.toggle('show', show);
       if (inputId) document.getElementById(inputId)?.classList.toggle('err', show);
@@ -458,6 +469,8 @@
           child_ages:  children.map(c => `ילד ${c.num}: ${c.age}`).join(' | '),
           challenge:   challenge,
           submit_time: new Date().toLocaleString('he-IL'),
+          device:      getDeviceInfo(),
+          user_agent:  navigator.userAgent,
         });
 
         document.getElementById('formFields').classList.add('hide');
