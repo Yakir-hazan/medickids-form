@@ -160,33 +160,28 @@
       white-space: nowrap;
       min-width: 44px;
     }
-    .age-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+    .child-age-input {
       flex: 1;
-    }
-    .age-chip { position: relative; }
-    .age-chip input[type="radio"] {
-      position: absolute; opacity: 0; width: 0; height: 0;
-    }
-    .age-chip label {
-      display: inline-block;
-      padding: 5px 11px;
       border: 1.5px solid var(--border);
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all .12s;
-      color: var(--muted);
-      margin: 0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-family: 'Heebo', sans-serif;
+      font-size: 14px;
+      color: var(--text);
       background: #fff;
+      -webkit-appearance: none;
+      transition: border-color .15s;
+      max-width: 90px;
     }
-    .age-chip input:checked + label {
-      background: var(--primary);
+    .child-age-input:focus {
+      outline: none;
       border-color: var(--primary);
-      color: #fff;
+    }
+    .child-age-input.err { border-color: var(--error); }
+    .child-age-unit {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
     }
     .btn-remove-child {
       background: none;
@@ -370,7 +365,6 @@
     emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
     // ── Children builder ──
-    const AGES = ['0–1', '1–3', '3–6', '6–10', '10–12', '12–15', '15+'];
     let childCount = 0;
 
     function addChild() {
@@ -381,13 +375,8 @@
       row.id = 'child-' + id;
       row.innerHTML = `
         <span class="child-label">ילד ${id}</span>
-        <div class="age-chips">
-          ${AGES.map(a => `
-            <div class="age-chip">
-              <input type="radio" name="child-age-${id}" id="ca-${id}-${a}" value="${a}">
-              <label for="ca-${id}-${a}">${a}</label>
-            </div>`).join('')}
-        </div>
+        <input type="number" inputmode="numeric" min="0" max="18" class="child-age-input" id="ca-${id}" placeholder="גיל">
+        <span class="child-age-unit">שנים</span>
         <button type="button" class="btn-remove-child" onclick="removeChild(${id}, this)" title="הסר">✕</button>
       `;
       document.getElementById('childrenList').appendChild(row);
@@ -404,8 +393,9 @@
     function getChildrenData() {
       const rows = document.querySelectorAll('.child-row');
       return Array.from(rows).map((r, i) => {
-        const checked = r.querySelector('input[type="radio"]:checked');
-        return { num: i + 1, age: checked ? checked.value : null };
+        const input = r.querySelector('.child-age-input');
+        const val = input.value.trim();
+        return { num: i + 1, age: val === '' ? null : val };
       });
     }
 
@@ -438,10 +428,13 @@
 
       const noChildren  = children.length === 0;
       const missingAge  = children.some(c => !c.age);
+      document.querySelectorAll('.child-age-input').forEach((inp, i) => {
+        inp.classList.toggle('err', !children[i] || !children[i].age);
+      });
       if (noChildren || missingAge) {
         document.getElementById('agesErr').textContent = noChildren
           ? 'נא להוסיף לפחות ילד אחד'
-          : 'נא לבחור גיל לכל הילדים';
+          : 'נא למלא גיל לכל הילדים';
         document.getElementById('agesErr').classList.add('show');
         valid = false;
       } else {
