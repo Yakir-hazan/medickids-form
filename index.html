@@ -277,8 +277,9 @@
       </div>
 
       <div class="field">
-        <label for="challenge">מה הכי קשה לך לנהל בבריאות הילד? <span class="opt">(אופציונלי)</span></label>
+        <label for="challenge">מה הכי קשה לך לנהל בבריאות הילד?</label>
         <textarea id="challenge" placeholder="למשל: לזכור מתי נתתי תרופה, לעקוב אחרי חום..."></textarea>
+        <div class="err-msg" id="challengeErr">נא לענות על השאלה</div>
       </div>
 
       <button class="btn-submit" id="submitBtn" onclick="handleSubmit()">
@@ -332,6 +333,7 @@
       setErr('emailErr', 'email', !email || !email.includes('@'));
       if (!email || !email.includes('@'))            valid = false;
       setErr('agesErr',  null,    !ages.length);     if (!ages.length) valid = false;
+      setErr('challengeErr', 'challenge', !challenge); if (!challenge) valid = false;
 
       if (!valid) return;
 
@@ -346,7 +348,7 @@
           from_name:   name,
           from_email:  email,
           child_ages:  ages.join(', '),
-          challenge:   challenge || '—',
+          challenge:   challenge,
           submit_time: new Date().toLocaleString('he-IL'),
         });
 
