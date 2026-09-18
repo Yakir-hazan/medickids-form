@@ -84,6 +84,38 @@
       border: 1px solid var(--border);
     }
 
+    /* Perks */
+    .perks {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 24px;
+      text-align: right;
+    }
+    .perk {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .perk span { flex: 1; }
+
+    /* Card intro */
+    .card-intro {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
     /* Card */
     .card {
       background: #ffffff;
@@ -247,9 +279,16 @@
     <div class="badge">גרסת בטא — מקומות מוגבלים</div>
     <h1>עוזרים לך לעקוב<br>אחרי בריאות הילדים</h1>
     <p>חום, תרופות, טיפולים — הכל במקום אחד, כדי שאף מינון לא יפספס.</p>
+
+    <div class="perks">
+      <div class="perk">🎁 <span>גישה חינמית מלאה בתקופת הבטא</span></div>
+      <div class="perk">💬 <span>הפידבק שלך יעצב את האפליקציה</span></div>
+      <div class="perk">⭐ <span>חברי הבטא יקבלו הטבות בלעדיות בהשקה</span></div>
+    </div>
   </div>
 
   <div class="card">
+    <p class="card-intro">אנחנו בשלבי בנייה אחרונים של MedikKids, ואנחנו מחפשים הורים אמיתיים שיבדקו אותה לפני כולם.<br>ממלאים פרטים, ואנחנו שולחים לינק ישירות.</p>
     <div class="form-fields" id="formFields">
 
       <div class="field">
