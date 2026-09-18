@@ -142,28 +142,81 @@
     input.err, textarea.err { border-color: var(--error); }
     textarea { resize: vertical; min-height: 90px; }
 
-    /* Age chips */
-    .ages-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    /* Children builder */
+    .child-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      background: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .child-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      min-width: 44px;
+    }
+    .age-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex: 1;
+    }
     .age-chip { position: relative; }
-    .age-chip input[type="checkbox"] {
+    .age-chip input[type="radio"] {
       position: absolute; opacity: 0; width: 0; height: 0;
     }
     .age-chip label {
       display: inline-block;
-      padding: 7px 14px;
+      padding: 5px 11px;
       border: 1.5px solid var(--border);
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       cursor: pointer;
       transition: all .12s;
       color: var(--muted);
       margin: 0;
+      background: #fff;
     }
     .age-chip input:checked + label {
       background: var(--primary);
       border-color: var(--primary);
       color: #fff;
+    }
+    .btn-remove-child {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+      transition: color .12s;
+      flex-shrink: 0;
+    }
+    .btn-remove-child:hover { color: var(--error); }
+    .btn-add-child {
+      width: 100%;
+      background: none;
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      font-family: 'Heebo', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background .12s, border-color .12s;
+    }
+    .btn-add-child:hover {
+      background: var(--accent);
+      border-color: var(--primary);
     }
 
     /* Error */
@@ -277,15 +330,10 @@
       </div>
 
       <div class="field">
-        <label>גיל הילדים שלך</label>
-        <div class="ages-grid" id="agesGrid">
-          <div class="age-chip"><input type="checkbox" id="a0" value="0–1"><label for="a0">0–1</label></div>
-          <div class="age-chip"><input type="checkbox" id="a1" value="1–3"><label for="a1">1–3</label></div>
-          <div class="age-chip"><input type="checkbox" id="a2" value="3–6"><label for="a2">3–6</label></div>
-          <div class="age-chip"><input type="checkbox" id="a3" value="6–10"><label for="a3">6–10</label></div>
-          <div class="age-chip"><input type="checkbox" id="a4" value="10+"><label for="a4">10+</label></div>
-        </div>
-        <div class="err-msg" id="agesErr">נא לבחור לפחות גיל אחד</div>
+        <label>ילדים</label>
+        <div id="childrenList"></div>
+        <button type="button" class="btn-add-child" id="addChildBtn" onclick="addChild()">+ הוסף ילד</button>
+        <div class="err-msg" id="agesErr">נא להוסיף לפחות ילד אחד עם גיל</div>
       </div>
 
       <div class="field">
@@ -321,6 +369,49 @@
 
     emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
+    // ── Children builder ──
+    const AGES = ['0–1', '1–3', '3–6', '6–10', '10+'];
+    let childCount = 0;
+
+    function addChild() {
+      childCount++;
+      const id = childCount;
+      const row = document.createElement('div');
+      row.className = 'child-row';
+      row.id = 'child-' + id;
+      row.innerHTML = `
+        <span class="child-label">ילד ${id}</span>
+        <div class="age-chips">
+          ${AGES.map(a => `
+            <div class="age-chip">
+              <input type="radio" name="child-age-${id}" id="ca-${id}-${a}" value="${a}">
+              <label for="ca-${id}-${a}">${a}</label>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="btn-remove-child" onclick="removeChild(${id}, this)" title="הסר">✕</button>
+      `;
+      document.getElementById('childrenList').appendChild(row);
+      document.getElementById('agesErr').classList.remove('show');
+    }
+
+    function removeChild(id, btn) {
+      document.getElementById('child-' + id).remove();
+      // renumber labels
+      const rows = document.querySelectorAll('.child-row');
+      rows.forEach((r, i) => r.querySelector('.child-label').textContent = 'ילד ' + (i + 1));
+    }
+
+    function getChildrenData() {
+      const rows = document.querySelectorAll('.child-row');
+      return Array.from(rows).map((r, i) => {
+        const checked = r.querySelector('input[type="radio"]:checked');
+        return { num: i + 1, age: checked ? checked.value : null };
+      });
+    }
+
+    // add first child automatically
+    addChild();
+
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -337,14 +428,26 @@
       const name      = document.getElementById('name').value.trim();
       const email     = document.getElementById('email').value.trim();
       const challenge = document.getElementById('challenge').value.trim();
-      const ages      = [...document.querySelectorAll('#agesGrid input:checked')].map(c => c.value);
+      const children  = getChildrenData();
 
       // Validate
       let valid = true;
       setErr('nameErr',  'name',  !name);           if (!name)  valid = false;
       setErr('emailErr', 'email', !email || !email.includes('@'));
       if (!email || !email.includes('@'))            valid = false;
-      setErr('agesErr',  null,    !ages.length);     if (!ages.length) valid = false;
+
+      const noChildren  = children.length === 0;
+      const missingAge  = children.some(c => !c.age);
+      if (noChildren || missingAge) {
+        document.getElementById('agesErr').textContent = noChildren
+          ? 'נא להוסיף לפחות ילד אחד'
+          : 'נא לבחור גיל לכל הילדים';
+        document.getElementById('agesErr').classList.add('show');
+        valid = false;
+      } else {
+        document.getElementById('agesErr').classList.remove('show');
+      }
+
       setErr('challengeErr', 'challenge', !challenge); if (!challenge) valid = false;
 
       if (!valid) return;
@@ -359,7 +462,7 @@
         await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
           from_name:   name,
           from_email:  email,
-          child_ages:  ages.join(', '),
+          child_ages:  children.map(c => `ילד ${c.num}: ${c.age}`).join(' | '),
           challenge:   challenge,
           submit_time: new Date().toLocaleString('he-IL'),
         });
