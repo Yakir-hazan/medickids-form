@@ -179,10 +179,18 @@
     }
     .child-age-input.err { border-color: var(--error); }
     .child-age-unit {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 6px;
+      font-family: 'Heebo', sans-serif;
+      -webkit-appearance: none;
+      cursor: pointer;
     }
+    .child-age-unit:focus { outline: none; border-color: var(--primary); }
     .btn-remove-child {
       background: none;
       border: none;
@@ -376,7 +384,10 @@
       row.innerHTML = `
         <span class="child-label">ילד ${id}</span>
         <input type="number" inputmode="numeric" min="0" max="18" class="child-age-input" id="ca-${id}" placeholder="גיל">
-        <span class="child-age-unit">שנים</span>
+        <select class="child-age-unit" id="cu-${id}">
+          <option value="שנים">שנים</option>
+          <option value="חודשים">חודשים</option>
+        </select>
         <button type="button" class="btn-remove-child" onclick="removeChild(${id}, this)" title="הסר">✕</button>
       `;
       document.getElementById('childrenList').appendChild(row);
@@ -394,8 +405,9 @@
       const rows = document.querySelectorAll('.child-row');
       return Array.from(rows).map((r, i) => {
         const input = r.querySelector('.child-age-input');
+        const unit  = r.querySelector('.child-age-unit');
         const val = input.value.trim();
-        return { num: i + 1, age: val === '' ? null : val };
+        return { num: i + 1, age: val === '' ? null : val, unit: unit.value };
       });
     }
 
@@ -466,7 +478,7 @@
         await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
           from_name:   name,
           from_email:  email,
-          child_ages:  children.map(c => `ילד ${c.num}: ${c.age}`).join(' | '),
+          child_ages:  children.map(c => `ילד ${c.num}: ${c.age} ${c.unit}`).join(' | '),
           challenge:   challenge,
           submit_time: new Date().toLocaleString('he-IL'),
           device:      getDeviceInfo(),
